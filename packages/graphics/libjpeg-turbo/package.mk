@@ -33,11 +33,11 @@ PKG_IS_ADDON="no"
 PKG_AUTORECONF="yes"
 
 PKG_CONFIGURE_OPTS_HOST="--enable-static \
-                         --disable-shared \
+                         --enable-shared \
                          --with-jpeg8 \
                          --without-simd"
 
-PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared --with-jpeg8"
+PKG_CONFIGURE_OPTS_TARGET="--enable-static --enable-shared --with-jpeg8"
 
 pre_configure_host() {
   export CFLAGS="$CFLAGS -fPIC -DPIC"

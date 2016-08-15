@@ -45,7 +45,9 @@ configure_target() {
 }
 
 post_makeinstall_target() {
-  rm -r $INSTALL/usr/bin/wpa_cli
+  if [ ! "$DISTRO" = "KVMOS" ]; then
+    rm -r $INSTALL/usr/bin/wpa_cli
+  fi
 
 mkdir -p $INSTALL/etc/dbus-1/system.d
   cp wpa_supplicant/dbus/dbus-wpa_supplicant.conf $INSTALL/etc/dbus-1/system.d

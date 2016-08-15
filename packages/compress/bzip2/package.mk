@@ -63,6 +63,7 @@ make_target() {
 
 post_make_target() {
   ln -snf libbz2.so.1.0 libbz2.so
+  ln -snf libbz2.so.1.0 libbz2.so.1
 }
 
 makeinstall_target() {

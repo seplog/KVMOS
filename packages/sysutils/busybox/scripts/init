@@ -28,11 +28,13 @@
   /bin/busybox mkdir -p /flash
   /bin/busybox mkdir -p /sysroot
   /bin/busybox mkdir -p /storage
+  /bin/busybox mkdir -p /hugepages
 
   # mount all needed special filesystems
   /bin/busybox mount -t devtmpfs devtmpfs /dev
   /bin/busybox mount -t proc proc /proc
   /bin/busybox mount -t sysfs sysfs /sys
+  /bin/busybox mount -t hugetlbfs hugetlbfs /hugepages
 
   # common functions
   . /functions
@@ -882,6 +884,7 @@
 
     mount --move /flash /sysroot/flash
     mount --move /storage /sysroot/storage
+    mount --move /hugepages /sysroot/hugepages
 
     if [ ! -d "/sysroot/lib/modules/$(uname -r)/" -a -f "/sysroot/usr/lib/systemd/systemd" ]; then
       echo ""

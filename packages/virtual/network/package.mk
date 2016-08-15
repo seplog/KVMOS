@@ -23,7 +23,7 @@ PKG_ARCH="any"
 PKG_LICENSE="various"
 PKG_SITE="http://www.openelec.tv"
 PKG_URL=""
-PKG_DEPENDS_TARGET="toolchain connman iana-etc ethtool openssh openvpn"
+PKG_DEPENDS_TARGET="toolchain iana-etc ethtool openssh openvpn "
 PKG_PRIORITY="optional"
 PKG_SECTION="virtual"
 PKG_SHORTDESC="network: Metapackage for packages to install network support"
@@ -31,6 +31,12 @@ PKG_LONGDESC="network: Metapackage for various packages to install network suppo
 
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
+
+if [ "$DISTRO" = "KVMOS" ]; then
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET netctl"
+else
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET connman"
+fi
 
 if [ "$BLUETOOTH_SUPPORT" = "yes" ]; then
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET bluez"

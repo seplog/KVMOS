@@ -223,6 +223,8 @@ post_makeinstall_target() {
   ln -sf /storage/.config/hwdb.d $INSTALL/etc/udev/hwdb.d
   rm -rf $INSTALL/etc/udev/rules.d
   ln -sf /storage/.config/udev.rules.d $INSTALL/etc/udev/rules.d
+
+  ln -sf libsystemd.so $INSTALL/usr/lib/libsystemd.so.0
 }
 
 post_install() {

@@ -24,7 +24,7 @@ PKG_LICENSE="GPL"
 PKG_SITE="http://www.busybox.net"
 PKG_URL="http://busybox.net/downloads/$PKG_NAME-$PKG_VERSION.tar.bz2"
 PKG_DEPENDS_HOST=""
-PKG_DEPENDS_TARGET="toolchain busybox:host hdparm dosfstools e2fsprogs zip unzip pciutils usbutils parted procps-ng"
+PKG_DEPENDS_TARGET="toolchain busybox:host hdparm dosfstools e2fsprogs zip unzip pciutils usbutils parted procps-ng bash"
 PKG_DEPENDS_INIT="toolchain"
 PKG_PRIORITY="required"
 PKG_SECTION="system"
@@ -210,7 +210,7 @@ post_install() {
   echo "chmod 4755 $INSTALL/bin/busybox" >> $FAKEROOT_SCRIPT
   echo "chmod 000 $INSTALL/etc/shadow" >> $FAKEROOT_SCRIPT
 
-  add_user root "$ROOT_PWD" 0 0 "Root User" "/storage" "/bin/sh"
+  add_user root "$ROOT_PWD" 0 0 "Root User" "/storage" "/bin/bash"
   add_group root 0
   add_group users 100
 

@@ -36,7 +36,7 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-secure-rpc \
                            --disable-loadable-i18n \
                            --disable-loadable-xcursor \
                            --enable-xthreads \
-                           --disable-xcms \
+                           --enable-xcms \
                            --enable-xlocale \
                            --disable-xlocaledir \
                            --enable-xkb \

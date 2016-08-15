@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [[ $@ == *"variable="* ]]
+then
+  echo -n $PKG_CONFIG_PREFIX
+fi
+
+if [[ $@ == *"glib_"* ]]
+then
+  echo -n /usr/bin/
+fi
+
+RES=$(${PKG_CONFIG_TARGET} $@)
+CODE=$?
+echo -n $RES
+exit $CODE

@@ -43,6 +43,20 @@ if [ "$DISPLAYSERVER" = "x11" ]; then
                     --disable-glesv2 \
                     --disable-egl \
                     --with-x"
+  if [ "$DISTRO" = "KVMOS" ]; then
+    PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET glib libxcb"
+    PKG_CAIRO_CONFIG="$PKG_CAIRO_CONFIG \
+                      --enable-xcb \
+                      --enable-xlib-xcb \
+                      --enable-tee \
+                      --enable-gobject"
+  else
+    PKG_CAIRO_CONFIG="$PKG_CAIRO_CONFIG \
+                      --disable-xcb \
+                      --disable-xlib-xcb \
+                      --disable-tee \
+                      --disable-gobject"
+  fi
 
 
 elif [ "$DISPLAYSERVER" = "weston" ]; then
@@ -64,8 +78,6 @@ PKG_CONFIGURE_OPTS_TARGET="$PKG_CAIRO_CONFIG \
                            --enable-atomic \
                            --disable-gcov \
                            --disable-valgrind \
-                           --disable-xcb \
-                           --disable-xlib-xcb \
                            --disable-xcb-shm \
                            --disable-qt \
                            --disable-quartz \
@@ -92,10 +104,8 @@ PKG_CONFIGURE_OPTS_TARGET="$PKG_CAIRO_CONFIG \
                            --enable-pdf \
                            --enable-svg \
                            --disable-test-surfaces \
-                           --disable-tee \
                            --disable-xml \
                            --enable-pthread \
-                           --disable-gobject \
                            --disable-full-testing \
                            --disable-trace \
                            --enable-interpreter \

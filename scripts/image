@@ -152,6 +152,7 @@ fi
   $SCRIPTS/install util-linux
   $SCRIPTS/install corefonts
   $SCRIPTS/install network
+  $SCRIPTS/install virt-manager
 
 # Graphic support
   [ ! "$DISPLAYSERVER" = "no" ] && $SCRIPTS/install $DISPLAYSERVER
@@ -176,6 +177,9 @@ fi
 
 # LCD support
   [ ! "$LCD_DRIVER" = "none" ] && $SCRIPTS/install lcdproc
+
+# Samba Server support
+  [ "$SAMBA_SERVER" = "yes" ] && $SCRIPTS/install samba
 
 # Virtual image creation support
   [ "$PROJECT" = Virtual ] && $SCRIPTS/install virtual

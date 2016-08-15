@@ -40,8 +40,4 @@ configure_target() {
 
 post_makeinstall_target() {
   mv $SYSROOT_PREFIX/usr/lib/libyajl_s.a $SYSROOT_PREFIX/usr/lib/libyajl.a
-  rm $SYSROOT_PREFIX/usr/lib/libyajl.so*
-
-  rm -rf $INSTALL/usr/bin
-  rm -rf $INSTALL/usr/lib
 }

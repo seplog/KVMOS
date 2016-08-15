@@ -36,4 +36,9 @@ post_makeinstall_target() {
   # backwards comatibility
   mkdir -p $INSTALL/etc/pki/tls
     ln -sf /etc/ssl/cert.pem $INSTALL/etc/pki/tls/cacert.pem
+
+  cd $INSTALL/usr/lib
+  ln -sf libssl.so.35.0.0 libssl.so.1.0.0
+  ln -sf libcrypto.so.35.0.0 libcrypto.so.1.0.0
 }
+
