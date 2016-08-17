@@ -41,3 +41,8 @@ PKG_CONFIGURE_OPTS_TARGET="--enable-static \
 pre_configure_target() {
   export LIBS="-lterminfo"
 }
+
+post_makeinstall_target() {
+  mkdir $INSTALL/bin
+    ln -sf /usr/bin/bash $INSTALL/bin/
+}

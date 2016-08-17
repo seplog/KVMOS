@@ -81,12 +81,15 @@ makeinstall_host() {
 
 makeinstall_target() {
   mkdir -p $INSTALL/usr/lib
-    cp libcap/libcap.a $INSTALL/usr/lib
     cp libcap/libcap.so* $INSTALL/usr/lib
 
-  mkdir -p $INSTALL/usr/lib/pkgconfig
-    cp libcap/libcap.pc $INSTALL/usr/lib/pkgconfig
+  mkdir -p $SYSROOT_PREFIX/usr/lib
+    cp libcap/libcap.a $SYSROOT_PREFIX/usr/lib
+    cp libcap/libcap.so* $SYSROOT_PREFIX/usr/lib
 
-  mkdir -p $INSTALL/usr/include/sys
-    cp libcap/include/sys/capability.h $INSTALL/usr/include/sys
+  mkdir -p $SYSROOT_PREFIX/usr/lib/pkgconfig
+    cp libcap/libcap.pc $SYSROOT_PREFIX/usr/lib/pkgconfig
+
+  mkdir -p $SYSROOT_PREFIX/usr/include/sys
+    cp libcap/include/sys/capability.h $SYSROOT_PREFIX/usr/include/sys
 }
