@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
-if [[ $@ == *"variable="* ]]
+if [[ "$@" = *"variable="* ]]
 then
   echo -n $PKG_CONFIG_PREFIX
 fi
 
-if [[ $@ == *"glib_"* ]]
+if [[ "$@" = *"glib_"* ]]
 then
   echo -n /usr/bin/
 fi

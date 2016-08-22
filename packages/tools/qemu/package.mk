@@ -32,6 +32,8 @@ PKG_LONGDESC="QEMU + Kernel-based Virtual Machine userland tools"
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
 
+LTO_SUPPORT="no"
+
 TARGET_CONFIGURE_OPTS="--prefix=/usr \
                        --bindir=/usr/bin \
                        --sbindir=/usr/sbin \
@@ -43,7 +45,7 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-bsd-user \
                            --disable-guest-agent \
                            --disable-strip \
                            --disable-werror \
-                           --enable-gcrypt \
+                           --disable-gcrypt \
                            --disable-debug-info \
                            --disable-debug-tcg \
                            --disable-docs \
@@ -100,7 +102,7 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-bsd-user \
 
 export CXXFLAGS="$CXXFLAGS -I$SYSROOT_PREFIX/usr/include"
 export CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include -I$SYSROOT_PREFIX/usr/include/SDL2"
-export LDFLAGS="$LDFLAGS -I$SYSROOT_PREFIX/usr/lib -L$SYSROOT_PREFIX/usr/lib -lbz2 -lSDL2 -lbluetooth"
+export LDFLAGS="$LDFLAGS -L$SYSROOT_PREFIX/usr/lib -lbz2 -lSDL2 -lbluetooth -lgcrypt"
 
 post_install_target() {
   mkdir -p $INSTALL/usr/config/sysctl.d
