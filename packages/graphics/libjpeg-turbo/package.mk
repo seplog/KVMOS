@@ -34,10 +34,9 @@ PKG_AUTORECONF="yes"
 
 PKG_CONFIGURE_OPTS_HOST="--enable-static \
                          --enable-shared \
-                         --with-jpeg8 \
                          --without-simd"
 
-PKG_CONFIGURE_OPTS_TARGET="--enable-static --enable-shared --with-jpeg8"
+PKG_CONFIGURE_OPTS_TARGET="JPEG_LIB_VERSION=62 --enable-static --enable-shared --with-jpeg8"
 
 pre_configure_host() {
   export CFLAGS="$CFLAGS -fPIC -DPIC"

@@ -101,6 +101,8 @@ pre_configure_target() {
 }
 
 post_makeinstall_target() {
+  cp -Rf $INSTALL/usr/lib/* $SYSROOT_PREFIX/usr/lib/
+
   rm -rf $INSTALL/usr/share/zsh
   rm -rf $INSTALL/usr/bin/curl-config
 
