@@ -32,12 +32,10 @@ PKG_LONGDESC="QEMU + Kernel-based Virtual Machine userland tools"
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
 
+LTO_SUPPORT="no"
 unset TARGET_CONFIGURE_OPTS
 
-PKG_CONFIGURE_OPTS_TARGET="--cc=$CC \
-                           --host-cc=$CC \
-                           --cxx=$CC \
-                           --prefix=/usr \
+PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                            --bindir=/usr/bin \
                            --sbindir=/usr/sbin \
                            --sysconfdir=/etc \
