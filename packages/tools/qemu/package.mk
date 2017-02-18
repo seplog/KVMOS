@@ -23,7 +23,7 @@ PKG_ARCH="x86_64"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.qemu.org"
 PKG_URL="http://wiki.qemu.org/download/$PKG_NAME-$PKG_VERSION.tar.bz2"
-PKG_DEPENDS_TARGET="toolchain alsa-lib SDL2 curl libgcrypt bzip2 lzo libepoxy mesa nettle libpng libjpeg-turbo gtk+ bluez spice virglrenderer libusb util-linux usbredir libaio"
+PKG_DEPENDS_TARGET="toolchain alsa-lib SDL2 curl libgcrypt bzip2 lzo libepoxy mesa nettle libpng libjpeg-turbo bluez spice virglrenderer libusb util-linux usbredir libaio seabios"
 PKG_PRIORITY="optional"
 PKG_SECTION="virtualization"
 PKG_SHORTDESC="QEMU + Kernel-based Virtual Machine userland tools"
@@ -60,7 +60,7 @@ PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                            --disable-glusterfs \
                            --disable-gnutls \
                            --enable-nettle \
-                           --enable-gtk \
+                           --disable-gtk \
                            --disable-rdma \
                            --disable-libiscsi \
                            --enable-vnc-jpeg \
@@ -96,7 +96,6 @@ PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                            --enable-system \
                            --with-system-pixman \
                            --audio-drv-list=sdl,alsa \
-                           --with-gtkabi=3.0 \
                            --with-sdlabi=2.0 \
                            --target-list=x86_64-softmmu"
 

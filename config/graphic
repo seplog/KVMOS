@@ -12,10 +12,30 @@ fi
 
 get_graphicdrivers() {
   if [ "$GRAPHIC_DRIVERS" = "all" ]; then
-    GRAPHIC_DRIVERS="i915 i965 r200 r300 r600 nvidia vmware virtualbox"
+    GRAPHIC_DRIVERS="matrox i915 i965 r200 r300 r600 nvidia vmware virtualbox"
   fi
 
   for drv in $GRAPHIC_DRIVERS; do
+    if [ "$drv" = "matrox" ]; then
+      DRI_DRIVERS="$DRI_DRIVERS,mga"
+      XORG_DRIVERS="$XORG_DRIVERS mga"
+    fi
+
+    if [ "$drv" = "fbdev" ]; then
+      DRI_DRIVERS="$DRI_DRIVERS,fbdev"
+      XORG_DRIVERS="$XORG_DRIVERS fbdev"
+    fi
+
+    if [ "$drv" = "modesetting" ]; then
+      DRI_DRIVERS="$DRI_DRIVERS,modesetting"
+      XORG_DRIVERS="$XORG_DRIVERS modesetting"
+    fi
+
+    if [ "$drv" = "vesa" ]; then
+      DRI_DRIVERS="$DRI_DRIVERS,vesa"
+      XORG_DRIVERS="$XORG_DRIVERS vesa"
+    fi
+
     if [ "$drv" = "i915" ]; then
       DRI_DRIVERS="$DRI_DRIVERS,i915"
       XORG_DRIVERS="$XORG_DRIVERS intel"
