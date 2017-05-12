@@ -193,6 +193,7 @@ fi
 
 # Install gdb in all builds, including releases
   $SCRIPTS/install debug
+  $SCRIPTS/install utils
 
 # OEM packages
   [ "$OEM_SUPPORT" = "yes" ] && $SCRIPTS/install oem
