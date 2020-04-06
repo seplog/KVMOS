@@ -17,13 +17,13 @@
 ################################################################################
 
 PKG_NAME="qemu"
-PKG_VERSION="2.6.0"
+PKG_VERSION="4.2.0"
 PKG_REV="1"
 PKG_ARCH="x86_64"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.qemu.org"
-PKG_URL="http://wiki.qemu.org/download/$PKG_NAME-$PKG_VERSION.tar.bz2"
-PKG_DEPENDS_TARGET="toolchain alsa-lib SDL2 curl libgcrypt bzip2 lzo libepoxy mesa nettle libpng libjpeg-turbo bluez spice virglrenderer libusb util-linux usbredir libaio seabios"
+PKG_URL="https://download.qemu.org/$PKG_NAME-$PKG_VERSION.tar.xz"
+PKG_DEPENDS_TARGET="toolchain alsa-lib SDL2 curl libgcrypt bzip2 lzo libepoxy mesa nettle libpng libjpeg-turbo bluez spice virglrenderer libusb util-linux usbredir libaio seabios Python3:host"
 PKG_PRIORITY="optional"
 PKG_SECTION="virtualization"
 PKG_SHORTDESC="QEMU + Kernel-based Virtual Machine userland tools"
@@ -33,15 +33,8 @@ PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
 
 LTO_SUPPORT="no"
-unset TARGET_CONFIGURE_OPTS
 
-PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
-                           --bindir=/usr/bin \
-                           --sbindir=/usr/sbin \
-                           --sysconfdir=/etc \
-                           --libexecdir=/usr/lib \
-                           --localstatedir=/var \
-                           --disable-bsd-user \
+PKG_CONFIGURE_OPTS_TARGET="--disable-bsd-user \
                            --disable-guest-agent \
                            --disable-strip \
                            --disable-werror \
@@ -79,10 +72,8 @@ PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                            --disable-smartcard \
                            --disable-snappy \
                            --enable-spice \
-                           --disable-libssh2 \
                            --enable-libusb \
                            --enable-usb-redir \
-                           --enable-uuid \
                            --disable-vde \
                            --enable-vhost-net \
                            --enable-virglrenderer \
@@ -94,14 +85,22 @@ PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                            --disable-xfsctl \
                            --disable-linux-user \
                            --enable-system \
-                           --with-system-pixman \
                            --audio-drv-list=sdl,alsa \
-                           --with-sdlabi=2.0 \
                            --target-list=x86_64-softmmu"
 
 export CXXFLAGS="$CXXFLAGS -I$SYSROOT_PREFIX/usr/include"
-export CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include -I$SYSROOT_PREFIX/usr/include/SDL2"
-export LDFLAGS="$LDFLAGS -L$SYSROOT_PREFIX/usr/lib -lbz2 -lSDL2 -lbluetooth -lgcrypt"
+export CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include"
+export LDFLAGS="$LDFLAGS -L$SYSROOT_PREFIX/usr/lib -lbz2 -lbluetooth -lgcrypt"
+
+pre_configure_target() {
+  TARGET_CONFIGURE_OPTS="--prefix=/usr \
+                         --bindir=/usr/bin \
+                         --sbindir=/usr/sbin \
+                         --sysconfdir=/etc \
+                         --libexecdir=/usr/lib \
+                         --localstatedir=/var \
+                         --python=$TOOLCHAIN/bin/python"
+}
 
 post_install_target() {
   mkdir -p $INSTALL/usr/config/sysctl.d

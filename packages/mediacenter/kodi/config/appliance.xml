@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<settings>
+<settings version="1">
 
-  <section id="interface">
-    <category id="other">
-      <group id="2">
-        <setting id="lookandfeel.enablerssfeeds">
+  <section id="games">
+    <category id="gamesgeneral">
+      <group id="1">
+        <setting id="gamesgeneral.enablerewind">
           <default>false</default>
         </setting>
       </group>
@@ -31,6 +31,13 @@
         </setting>
       </group>
     </category>
+    <category id="logging">
+      <group id="1">
+        <setting id="debug.screenshotpath">
+          <default>/storage/screenshots/</default>
+        </setting>
+      </group>
+    </category>
   </section>
 
   <section id="services">
@@ -42,32 +49,24 @@
       </group>
     </category>
 
-    <category id="general">
-      <group id="2">
-        <setting id="services.zeroconf">
-          <default>true</default>
-        </setting>
-      </group>
-    </category>
-
-    <category id="webserver">
+    <category id="control">
       <group id="1">
         <setting id="services.webserver">
           <default>true</default>
         </setting>
       </group>
     </category>
-  </section>
 
-  <section id="pvr">
-    <category id="pvrmanager">
+    <category id="smb">
       <group id="2">
-        <setting id="pvrmanager.syncchannelgroups">
-          <default>false</default>
+        <setting id="smb.maxprotocol">
+          <default>0</default>
         </setting>
       </group>
     </category>
+  </section>
 
+  <section id="pvr">
     <category id="epg">
       <group id="2">
         <setting id="epg.preventupdateswhileplayingtv">

@@ -1,31 +1,16 @@
-################################################################################
-#      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
-#
-#  OpenELEC is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 2 of the License, or
-#  (at your option) any later version.
-#
-#  OpenELEC is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with OpenELEC.  If not, see <http://www.gnu.org/licenses/>.
-################################################################################
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
+# Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="busybox"
-PKG_VERSION="1.25.0"
-PKG_REV="1"
-PKG_ARCH="any"
+PKG_VERSION="1.31.0"
+PKG_SHA256="0e4925392fd9f3743cc517e031b68b012b24a63b0cf6c1ff03cce7bb3846cc99"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.busybox.net"
 PKG_URL="http://busybox.net/downloads/$PKG_NAME-$PKG_VERSION.tar.bz2"
-PKG_DEPENDS_HOST=""
-PKG_DEPENDS_TARGET="toolchain busybox:host hdparm dosfstools e2fsprogs zip unzip pciutils usbutils parted procps-ng bash"
-PKG_DEPENDS_INIT="toolchain"
+PKG_DEPENDS_HOST="gcc:host"
+PKG_DEPENDS_TARGET="toolchain busybox:host hdparm dosfstools e2fsprogs zip unzip pciutils usbutils parted procps-ng bash gptfdisk libtirpc"
+PKG_DEPENDS_INIT="toolchain libtirpc"
 PKG_PRIORITY="required"
 PKG_SECTION="system"
 PKG_SHORTDESC="BusyBox: The Swiss Army Knife of Embedded Linux"
@@ -46,72 +31,76 @@ PKG_MAKE_OPTS_INIT="ARCH=$TARGET_ARCH \
                     KBUILD_VERBOSE=1 \
                     install"
 
+
+# busybox fails to build with GOLD support enabled with binutils-2.25
+PKG_BUILD_FLAGS="-parallel -gold"
+
 # nano text editor
-  if [ "$NANO_EDITOR" = "yes" ]; then
-    PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET nano"
-  fi
+if [ "$NANO_EDITOR" = "yes" ]; then
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET nano"
+fi
 
 # nfs support
 if [ "$NFS_SUPPORT" = yes ]; then
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET rpcbind"
 fi
 
-if [ -f $PROJECT_DIR/$PROJECT/busybox/busybox-target.conf ]; then
-  BUSYBOX_CFG_FILE_TARGET=$PROJECT_DIR/$PROJECT/busybox/busybox-target.conf
-else
-  BUSYBOX_CFG_FILE_TARGET=$PKG_DIR/config/busybox-target.conf
-fi
-
-if [ -f $PROJECT_DIR/$PROJECT/busybox/busybox-init.conf ]; then
-  BUSYBOX_CFG_FILE_INIT=$PROJECT_DIR/$PROJECT/busybox/busybox-init.conf
-else
-  BUSYBOX_CFG_FILE_INIT=$PKG_DIR/config/busybox-init.conf
+if [ "$TARGET_ARCH" = "x86_64" ]; then
+  PKG_DEPENDS_TARGET+=" pciutils"
 fi
 
 pre_build_target() {
+  PKG_MAKE_OPTS_TARGET="ARCH=$TARGET_ARCH \
+                        HOSTCC=$HOST_CC \
+                        CROSS_COMPILE=$TARGET_PREFIX \
+                        KBUILD_VERBOSE=1 \
+                        install"
+
   mkdir -p $PKG_BUILD/.$TARGET_NAME
   cp -RP $PKG_BUILD/* $PKG_BUILD/.$TARGET_NAME
 }
 
 pre_build_host() {
+  PKG_MAKE_OPTS_HOST="ARCH=$TARGET_ARCH CROSS_COMPILE= KBUILD_VERBOSE=1 install"
+
   mkdir -p $PKG_BUILD/.$HOST_NAME
   cp -RP $PKG_BUILD/* $PKG_BUILD/.$HOST_NAME
 }
 
 pre_build_init() {
+  PKG_MAKE_OPTS_INIT="ARCH=$TARGET_ARCH \
+                      HOSTCC=$HOST_CC \
+                      CROSS_COMPILE=$TARGET_PREFIX \
+                      KBUILD_VERBOSE=1 \
+                      install"
+
   mkdir -p $PKG_BUILD/.$TARGET_NAME-init
   cp -RP $PKG_BUILD/* $PKG_BUILD/.$TARGET_NAME-init
 }
 
 configure_host() {
-  cd $ROOT/$PKG_BUILD/.$HOST_NAME
+  cd $PKG_BUILD/.$HOST_NAME
     cp $PKG_DIR/config/busybox-host.conf .config
 
     # set install dir
-    sed -i -e "s|^CONFIG_PREFIX=.*$|CONFIG_PREFIX=\"$ROOT/$PKG_BUILD/.install_host\"|" .config
+    sed -i -e "s|^CONFIG_PREFIX=.*$|CONFIG_PREFIX=\"$PKG_BUILD/.install_host\"|" .config
 
     make oldconfig
 }
 
 configure_target() {
-  cd $ROOT/$PKG_BUILD/.$TARGET_NAME
-    cp $BUSYBOX_CFG_FILE_TARGET .config
+  cd $PKG_BUILD/.$TARGET_NAME
+    find_file_path config/busybox-target.conf
+    cp $FOUND_PATH .config
 
     # set install dir
-    sed -i -e "s|^CONFIG_PREFIX=.*$|CONFIG_PREFIX=\"$INSTALL\"|" .config
-
-    if [ ! "$DEVTOOLS" = yes ]; then
-      sed -i -e "s|^CONFIG_DEVMEM=.*$|# CONFIG_DEVMEM is not set|" .config
-    fi
+    sed -i -e "s|^CONFIG_PREFIX=.*$|CONFIG_PREFIX=\"$INSTALL/usr\"|" .config
 
     if [ ! "$CRON_SUPPORT" = "yes" ] ; then
       sed -i -e "s|^CONFIG_CROND=.*$|# CONFIG_CROND is not set|" .config
       sed -i -e "s|^CONFIG_FEATURE_CROND_D=.*$|# CONFIG_FEATURE_CROND_D is not set|" .config
       sed -i -e "s|^CONFIG_CRONTAB=.*$|# CONFIG_CRONTAB is not set|" .config
-    fi
-
-    if [ ! "$NFS_SUPPORT" = yes ]; then
-      sed -i -e "s|^CONFIG_FEATURE_MOUNT_NFS=.*$|# CONFIG_FEATURE_MOUNT_NFS is not set|" .config
+      sed -i -e "s|^CONFIG_FEATURE_CROND_SPECIAL_TIMES=.*$|# CONFIG_FEATURE_CROND_SPECIAL_TIMES is not set|" .config
     fi
 
     if [ ! "$SAMBA_SUPPORT" = yes ]; then
@@ -121,9 +110,7 @@ configure_target() {
     # optimize for size
     CFLAGS=`echo $CFLAGS | sed -e "s|-Ofast|-Os|"`
     CFLAGS=`echo $CFLAGS | sed -e "s|-O.|-Os|"`
-
-    # busybox fails to build with GOLD support enabled with binutils-2.25
-    strip_gold
+    CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include/tirpc"
 
     LDFLAGS="$LDFLAGS -fwhole-program"
 
@@ -131,18 +118,17 @@ configure_target() {
 }
 
 configure_init() {
-  cd $ROOT/$PKG_BUILD/.$TARGET_NAME-init
-    cp $BUSYBOX_CFG_FILE_INIT .config
+  cd $PKG_BUILD/.$TARGET_NAME-init
+    find_file_path config/busybox-init.conf
+    cp $FOUND_PATH .config
 
     # set install dir
-    sed -i -e "s|^CONFIG_PREFIX=.*$|CONFIG_PREFIX=\"$INSTALL\"|" .config
+    sed -i -e "s|^CONFIG_PREFIX=.*$|CONFIG_PREFIX=\"$INSTALL/usr\"|" .config
 
     # optimize for size
     CFLAGS=`echo $CFLAGS | sed -e "s|-Ofast|-Os|"`
     CFLAGS=`echo $CFLAGS | sed -e "s|-O.|-Os|"`
-
-    # busybox fails to build with GOLD support enabled with binutils-2.25
-    strip_gold
+    CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include/tirpc"
 
     LDFLAGS="$LDFLAGS -fwhole-program"
 
@@ -150,18 +136,19 @@ configure_init() {
 }
 
 makeinstall_host() {
-  mkdir -p $ROOT/$TOOLCHAIN/bin
-    cp -R $ROOT/$PKG_BUILD/.install_host/bin/* $ROOT/$TOOLCHAIN/bin
+  mkdir -p $TOOLCHAIN/bin
+    cp -R $PKG_BUILD/.install_host/bin/* $TOOLCHAIN/bin
 }
 
 makeinstall_target() {
   mkdir -p $INSTALL/usr/bin
+    [ $TARGET_ARCH = x86_64 ] && cp $PKG_DIR/scripts/getedid $INSTALL/usr/bin
     cp $PKG_DIR/scripts/createlog $INSTALL/usr/bin/
+    cp $PKG_DIR/scripts/dtfile $INSTALL/usr/bin
+    cp $PKG_DIR/scripts/dtname $INSTALL/usr/bin
     cp $PKG_DIR/scripts/lsb_release $INSTALL/usr/bin/
     cp $PKG_DIR/scripts/apt-get $INSTALL/usr/bin/
-    cp $PKG_DIR/scripts/passwd $INSTALL/usr/bin/
     cp $PKG_DIR/scripts/sudo $INSTALL/usr/bin/
-    ln -sf /bin/busybox $INSTALL/usr/bin/env          #/usr/bin/env is needed for most python scripts
     cp $PKG_DIR/scripts/pastebinit $INSTALL/usr/bin/
     ln -sf pastebinit $INSTALL/usr/bin/paste
 
@@ -171,30 +158,27 @@ makeinstall_target() {
     sed -e "s/@DISTRONAME@/$DISTRONAME/g" \
         -i $INSTALL/usr/lib/libreelec/fs-resize
 
+    if listcontains "${FIRMWARE}" "rpi-eeprom"; then
+      cp $PKG_DIR/scripts/rpi-flash-firmware $INSTALL/usr/lib/libreelec
+    fi
+
   mkdir -p $INSTALL/etc
     cp $PKG_DIR/config/profile $INSTALL/etc
     cp $PKG_DIR/config/inputrc $INSTALL/etc
     cp $PKG_DIR/config/httpd.conf $INSTALL/etc
     cp $PKG_DIR/config/suspend-modules.conf $INSTALL/etc
 
-  mkdir -p $INSTALL/usr/config/sysctl.d
-    cp $PKG_DIR/config/transmission.conf $INSTALL/usr/config/sysctl.d
-
   # /etc/fstab is needed by...
     touch $INSTALL/etc/fstab
 
   # /etc/machine-id, needed by systemd and dbus
-    ln -sf /storage/.cache/machine-id $INSTALL/etc/machine-id
+    ln -sf /storage/.cache/systemd-machine-id $INSTALL/etc/machine-id
 
   # /etc/mtab is needed by udisks etc...
     ln -sf /proc/self/mounts $INSTALL/etc/mtab
 
   # create /etc/hostname
     ln -sf /proc/sys/kernel/hostname $INSTALL/etc/hostname
-
-  # systemd wants /usr/bin/mkdir
-    mkdir -p $INSTALL/usr/bin
-      ln -sf /bin/busybox $INSTALL/usr/bin/mkdir
 
   # add webroot
     mkdir -p $INSTALL/usr/www
@@ -205,10 +189,10 @@ makeinstall_target() {
 }
 
 post_install() {
-  ROOT_PWD="`$ROOT/$TOOLCHAIN/bin/cryptpw -m sha512 $ROOT_PASSWORD`"
+  ROOT_PWD="`$TOOLCHAIN/bin/cryptpw -m sha512 $ROOT_PASSWORD`"
 
-  echo "chmod 4755 $INSTALL/bin/busybox" >> $FAKEROOT_SCRIPT
-  echo "chmod 000 $INSTALL/etc/shadow" >> $FAKEROOT_SCRIPT
+  echo "chmod 4755 $INSTALL/usr/bin/busybox" >> $FAKEROOT_SCRIPT
+  echo "chmod 000 $INSTALL/usr/cache/shadow" >> $FAKEROOT_SCRIPT
 
   add_user root "$ROOT_PWD" 0 0 "Root User" "/storage" "/bin/bash"
   add_group root 0
@@ -217,12 +201,11 @@ post_install() {
   add_user nobody x 65534 65534 "Nobody" "/" "/bin/sh"
   add_group nogroup 65534
 
-  enable_service debug-shell.service
   enable_service shell.service
   enable_service show-version.service
   enable_service var.mount
-  enable_service var-log-debug.service
   enable_service fs-resize.service
+  listcontains "${FIRMWARE}" "rpi-eeprom" && enable_service rpi-flash-firmware.service
 
   # cron support
   if [ "$CRON_SUPPORT" = "yes" ] ; then
@@ -238,15 +221,18 @@ post_install() {
 
 makeinstall_init() {
   mkdir -p $INSTALL/bin
-    ln -sf busybox $INSTALL/bin/sh
-    chmod 4755 $INSTALL/bin/busybox
+    ln -sf busybox $INSTALL/usr/bin/sh
+    chmod 4755 $INSTALL/usr/bin/busybox
 
   mkdir -p $INSTALL/etc
     touch $INSTALL/etc/fstab
     ln -sf /proc/self/mounts $INSTALL/etc/mtab
 
-  if [ -f $PROJECT_DIR/$PROJECT/initramfs/platform_init ]; then
-    cp $PROJECT_DIR/$PROJECT/initramfs/platform_init $INSTALL
+  if find_file_path initramfs/platform_init; then
+    cp ${FOUND_PATH} $INSTALL
+    sed -e "s/@BOOT_LABEL@/$DISTRO_BOOTLABEL/g" \
+        -e "s/@DISK_LABEL@/$DISTRO_DISKLABEL/g" \
+        -i $INSTALL/platform_init
     chmod 755 $INSTALL/platform_init
   fi
 

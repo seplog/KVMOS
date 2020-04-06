@@ -1,34 +1,19 @@
-################################################################################
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 2 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-################################################################################
+  
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
+# Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="configtools"
-PKG_VERSION="706fbe5"
-PKG_ARCH="any"
+PKG_VERSION="5256817ace8493502ec88501a19e4051c2e220b0"
+PKG_SHA256="3856ff9a2a9382a3396549c047c28e0f05b7e4822239ffe91ce2e59b0a0284db"
 PKG_LICENSE="GPL"
 PKG_SITE="http://git.savannah.gnu.org/cgit/config.git"
-PKG_URL="http://git.savannah.gnu.org/cgit/config.git/snapshot/$PKG_VERSION.tar.xz"
-PKG_SOURCE_DIR="$PKG_VERSION*"
+PKG_URL="http://git.savannah.gnu.org/cgit/config.git/snapshot/config-$PKG_VERSION.tar.gz"
 PKG_DEPENDS_HOST=""
-PKG_SHORTDESC="configtools"
 PKG_LONGDESC="configtools"
-
-make_host() {
-  :
-}
+PKG_TOOLCHAIN="manual"
 
 makeinstall_host() {
-  mkdir -p $ROOT/$TOOLCHAIN/configtools
-  cp config.* $ROOT/$TOOLCHAIN/configtools
+  mkdir -p $TOOLCHAIN/configtools
+  cp config.* $TOOLCHAIN/configtools
 }

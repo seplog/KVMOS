@@ -1,0 +1,12 @@
+diff -Nur a/pc-bios/optionrom/Makefile b/pc-bios/optionrom/Makefile
+--- a/pc-bios/optionrom/Makefile	2019-12-12 19:20:48.000000000 +0100
++++ b/pc-bios/optionrom/Makefile	2020-03-26 15:52:09.460012775 +0100
+@@ -44,7 +44,7 @@
+ 
+ 
+ %.o: %.S
+-	$(call quiet-command,$(CPP) $(QEMU_INCLUDES) $(QEMU_DGFLAGS) -c -o - $< | $(AS) $(ASFLAGS) -o $@,"AS","$(TARGET_DIR)$@")
++	$(call quiet-command,$(CPP) $(QEMU_INCLUDES) $(QEMU_DGFLAGS) -o - $< | $(AS) $(ASFLAGS) -o $@,"AS","$(TARGET_DIR)$@")
+ 
+ pvh.img: pvh.o pvh_main.o
+ 	$(call quiet-command,$(LD) $(LDFLAGS_NOPIE) -m $(LD_I386_EMULATION) -T $(SRC_PATH)/pc-bios/optionrom/flat.lds -s -o $@ $^,"BUILD","$(TARGET_DIR)$@")

@@ -1,11 +1,23 @@
-8.0.103
-- Update to version 0.14.3
+108
+- Update to 1.2.0
 
-8.0.102
+107
+- Update to 1.0.0
+
+106
+- Update to 0.14.49
+
+105
+- Update to 0.14.29
+
+103
+- Update to 0.14.3
+
+102
 - Enable automatic upgrades
 
-8.0.101
-- Update to version 0.12.24
+101
+- Update to 0.12.24
 
-8.0.100
+100
 - Initial addon

@@ -1,0 +1,10 @@
+diff -Nur a/readline.pc.in b/readline.pc.in
+--- a/readline.pc.in	2020-04-06 15:04:14.090038333 +0200
++++ b/readline.pc.in	2020-04-06 15:04:57.660038411 +0200
+@@ -8,5 +8,5 @@
+ URL: http://tiswww.cwru.edu/php/chet/readline/rltop.html
+ Version: @LIBVERSION@
+ Requires.private: @TERMCAP_PKG_CONFIG_LIB@
+-Libs: -L${libdir} -lreadline
++Libs: -L${libdir} -lreadline -lncurses
+ Cflags: -I${includedir}/readline

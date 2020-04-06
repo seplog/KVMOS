@@ -1,33 +1,25 @@
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2019-present Team LibreELEC (https://libreelec.tv)
+
 PKG_NAME="webgrabplus"
-PKG_VERSION="56.28pre-20160729"
-PKG_REV="101"
-PKG_ARCH="arm x86_64"
-PKG_LICENSE="prop."
-PKG_SITE="http://www.webgrabplus.com/"
-PKG_URL="https://github.com/awiouy/webgrabplus/archive/$PKG_VERSION.tar.gz"
+PKG_VERSION="1.0"
+PKG_REV="100"
+PKG_ARCH="any"
+PKG_LICENSE="GPL"
+PKG_SITE=""
+PKG_URL=""
 PKG_DEPENDS_TARGET="toolchain"
-PKG_PRIORITY="optional"
 PKG_SECTION="service"
-PKG_SHORTDESC="WebGrab+Plus: a multi-site incremental xmltv epg grabber"
-PKG_LONGDESC="WebGrab+Plus ($PKG_VERSION) collects tv-program guide data from selected tvguide sites for your favourite channels."
-PKG_AUTORECONF="no"
+PKG_SHORTDESC="Add-on removed"
+PKG_LONGDESC="Add-on removed"
+PKG_TOOLCHAIN="manual"
+
+PKG_ADDON_BROKEN="Webgrab++ is no longer maintained and has been removed."
 
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="WebGrab+Plus"
-PKG_ADDON_TYPE="xbmc.service"
-PKG_ADDON_REPOVERSION="8.0"
-PKG_ADDON_REQUIRES="tools.mono:0.0.0"
-PKG_MAINTAINER="Anton Voyl (awiouy)"
-
-make_target() {
-  : # nop
-}
-
-makeinstall_target() {
-  : # nop
-}
+PKG_ADDON_TYPE="xbmc.broken"
 
 addon() {
-  mkdir -p $ADDON_BUILD/$PKG_ADDON_ID
-  cp -PR $PKG_BUILD/* $ADDON_BUILD/$PKG_ADDON_ID
+  :
 }
