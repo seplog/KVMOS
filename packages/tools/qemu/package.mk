@@ -23,7 +23,7 @@ PKG_ARCH="x86_64"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.qemu.org"
 PKG_URL="https://download.qemu.org/$PKG_NAME-$PKG_VERSION.tar.xz"
-PKG_DEPENDS_TARGET="toolchain alsa-lib SDL2 curl libgcrypt bzip2 lzo libepoxy mesa nettle libpng libjpeg-turbo bluez spice virglrenderer libusb util-linux usbredir libaio seabios Python3:host"
+PKG_DEPENDS_TARGET="toolchain alsa-lib SDL2 curl libgcrypt bzip2 lzo libepoxy mesa nettle libpng libjpeg-turbo spice virglrenderer libusb util-linux usbredir libaio seabios edk2-ovmf Python3:host"
 PKG_PRIORITY="optional"
 PKG_SECTION="virtualization"
 PKG_SHORTDESC="QEMU + Kernel-based Virtual Machine userland tools"
@@ -46,7 +46,7 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-bsd-user \
                            --enable-attr \
                            --disable-brlapi \
                            --enable-linux-aio \
-                           --enable-bluez \
+                           --disable-bluez \
                            --disable-cap-ng \
                            --enable-curl \
                            --enable-fdt \
@@ -90,7 +90,7 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-bsd-user \
 
 export CXXFLAGS="$CXXFLAGS -I$SYSROOT_PREFIX/usr/include"
 export CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include"
-export LDFLAGS="$LDFLAGS -L$SYSROOT_PREFIX/usr/lib -lbz2 -lbluetooth -lgcrypt"
+export LDFLAGS="$LDFLAGS -L$SYSROOT_PREFIX/usr/lib -lbz2 -lgcrypt"
 
 pre_configure_target() {
   TARGET_CONFIGURE_OPTS="--prefix=/usr \

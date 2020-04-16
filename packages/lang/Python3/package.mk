@@ -9,7 +9,7 @@ PKG_LICENSE="OSS"
 PKG_SITE="http://www.python.org/"
 PKG_URL="http://www.python.org/ftp/python/$PKG_VERSION/${PKG_NAME::-1}-$PKG_VERSION.tar.xz"
 PKG_DEPENDS_HOST="zlib:host bzip2:host libffi:host util-linux:host"
-PKG_DEPENDS_TARGET="toolchain sqlite expat zlib bzip2 openssl Python3:host readline ncurses"
+PKG_DEPENDS_TARGET="toolchain expat zlib bzip2 openssl Python3:host readline ncurses"
 PKG_LONGDESC="Python3 is an interpreted object-oriented programming language."
 
 PKG_PYTHON_VERSION=python3.7
@@ -57,7 +57,7 @@ PKG_CONFIGURE_OPTS_TARGET="ac_cv_prog_HAS_HG=/bin/false
                            ac_cv_header_bluetooth_h=no
                            --disable-pyc-build
                            --disable-ossaudiodev
-                           --enable-sqlite3
+                           --disable-sqlite3
                            --disable-codecs-cjk
                            --disable-nis
                            --enable-unicodedata

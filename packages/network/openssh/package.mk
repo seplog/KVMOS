@@ -55,5 +55,8 @@ post_makeinstall_target() {
 }
 
 post_install() {
+#  mkdir -p $INSTALL/usr/share/services
+#    cp -P $PKG_DIR/default.d/*.conf $INSTALL/usr/share/services
+
   enable_service sshd.service
 }

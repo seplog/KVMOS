@@ -160,7 +160,7 @@
   INITRAMFS_PARTED_SUPPORT="no"
 
 # build with swap support (yes / no)
-  SWAP_SUPPORT="yes"
+  SWAP_SUPPORT="no"
 
 # swap support enabled per default (yes / no)
   SWAP_ENABLED_DEFAULT="yes"
@@ -174,7 +174,7 @@
   ADDITIONAL_PACKAGES=""
 
 # build with installer (yes / no)
-  INSTALLER_SUPPORT="yes"
+  INSTALLER_SUPPORT="no"
 
 # Testpackages for development (yes / no)
   TESTING="no"
@@ -186,7 +186,7 @@
   NANO_EDITOR="yes"
 
 # cron support (yes / no)
-  CRON_SUPPORT="yes"
+  CRON_SUPPORT="no"
 
 # Distribution Specific source location
   DISTRO_MIRROR="http://sources.libreelec.tv/mirror"

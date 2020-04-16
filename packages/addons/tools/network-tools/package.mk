@@ -31,8 +31,7 @@ PKG_DEPENDS_TARGET="toolchain \
                     rsync \
                     sshfs \
                     tcpdump \
-                    udpxy \
-                    wireless_tools"
+                    udpxy"
 
 addon() {
   mkdir -p $ADDON_BUILD/$PKG_ADDON_ID/bin
