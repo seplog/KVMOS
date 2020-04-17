@@ -1,5 +1,8 @@
 [Unit]
 Description=OpenSSH server daemon
+After=ssh-defaults.service
+Requires=ssh-defaults.service
+
 ConditionKernelCommandLine=|ssh
 ConditionPathExists=|/storage/.cache/services/sshd.conf
 

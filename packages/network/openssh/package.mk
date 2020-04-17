@@ -55,8 +55,12 @@ post_makeinstall_target() {
 }
 
 post_install() {
-#  mkdir -p $INSTALL/usr/share/services
-#    cp -P $PKG_DIR/default.d/*.conf $INSTALL/usr/share/services
+  mkdir -p $INSTALL/usr/lib/systemd/system
+    cp $PKG_DIR/system.d/ssh-defaults.service $INSTALL/usr/lib/systemd/system
+    enable_service ssh-defaults.service
 
   enable_service sshd.service
+
+  mkdir -p $INSTALL/usr/share/services
+    cp -P $PKG_DIR/default.d/*.conf $INSTALL/usr/share/services
 }
