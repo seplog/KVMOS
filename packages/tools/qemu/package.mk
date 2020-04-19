@@ -92,7 +92,7 @@ export CXXFLAGS="$CXXFLAGS -I$SYSROOT_PREFIX/usr/include"
 export CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include"
 export LDFLAGS="$LDFLAGS -L$SYSROOT_PREFIX/usr/lib -lbz2 -lgcrypt"
 
-pre_configure_target() {
+pre_configure() {
   TARGET_CONFIGURE_OPTS="--prefix=/usr \
                          --bindir=/usr/bin \
                          --sbindir=/usr/sbin \
@@ -102,10 +102,14 @@ pre_configure_target() {
                          --python=$TOOLCHAIN/bin/python"
 }
 
-post_install_target() {
+post_makeinstall_target() {
   mkdir -p $INSTALL/usr/config/sysctl.d
   cp $PKG_DIR/config/hugepages.conf $INSTALL/usr/config/sysctl.d
 
   mkdir -p $INSTALL/usr/config/qemu
+  mkdir -p $INSTALL/etc
   ln -sf /storage/.config/qemu $INSTALL/etc/qemu
+
+  mkdir -p $INSTALL/usr/share/qemu/firmware
+    cp $PKG_DIR/config/firmware/* $INSTALL/usr/share/qemu/firmware/
 }

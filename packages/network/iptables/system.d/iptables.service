@@ -2,7 +2,9 @@
 Description=IPTABLES Packet Filtering
 ConditionPathExists=/usr/lib/libreelec/iptables_helper
 ConditionPathExists=|/storage/.cache/services/iptables.conf
+After=iptables-defaults.service
 Before=network.target
+Requires=iptables-defaults.service
 Wants=network.target
 
 [Service]

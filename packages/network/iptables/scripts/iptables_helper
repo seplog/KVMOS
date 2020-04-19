@@ -6,26 +6,13 @@
 IPTABLES4="/usr/sbin/iptables"
 IPTABLES6="/usr/sbin/ip6tables"
 IPTABLES_CMDS="$IPTABLES4 $IPTABLES6"
-PUBLIC_RULES="/etc/iptables/public.v"
 HOME_RULES="/etc/iptables/home.v"
 CUSTOM_RULES="/storage/.config/iptables/rules.v"
 DOCKER="service.system.docker.service"
 SYSTEMCTL="/usr/bin/systemctl"
-CONNMANCTL="/usr/bin/connmanctl"
 
 check_docker() {
     $SYSTEMCTL is-active --quiet $DOCKER && $SYSTEMCTL restart $DOCKER
-}
-
-check_tether() {
-    if [ -n "`$CONNMANCTL technologies | grep -e -A5 technology/wifi -e 'Tethering = True'`" ]; then
-        TECHNOLOGY="wifi"
-    elif [ -n "`$CONNMANCTL technologies | grep -e -A5 technology/ethernet -e 'Tethering = True'`" ]; then
-        TECHNOLOGY="ethernet"
-    fi
-    $CONNMANCTL tether $TECHNOLOGY off
-    sleep 1
-    $CONNMANCTL tether $TECHNOLOGY on
 }
 
 flush() {
@@ -41,47 +28,41 @@ flush() {
     $cmd -P OUTPUT ACCEPT
   done
   check_docker
-  check_tether
 }
 
 enable() {
   for cmd in $IPTABLES_CMDS; do
     case "$cmd" in
-      *6*) 
+      *6*)
          rules="$RULES6"
 	 ipv="6"
 	 ;;
-        *) 
+        *)
          rules="$RULES4"
 	 ipv="4"
 	 ;;
     esac
     if [ -e "$rules" ]; then
-      "$cmd-restore" "$rules" 
+      "$cmd-restore" "$rules"
     fi
   done
   check_docker
-  check_tether
 }
 
 if [ "$1" = "enable" ]; then
   case "${RULES}" in
-    "none") 
+    "none")
        flush
        ;;
-    "public") 
-       RULES4="${PUBLIC_RULES}4"
-       RULES6="${PUBLIC_RULES}6"
-       ;;
-    "home") 
+    "home")
        RULES4="${HOME_RULES}4"
        RULES6="${HOME_RULES}6"
        ;;
-    "custom") 
+    "custom")
        RULES4="${CUSTOM_RULES}4"
        RULES6="${CUSTOM_RULES}6"
        ;;
-    *) 
+    *)
        exit 1
        ;;
   esac
