@@ -5,10 +5,9 @@
 PKG_NAME="linux"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.kernel.org"
-PKG_DEPENDS_HOST="ccache:host openssl:host"
-PKG_DEPENDS_TARGET="toolchain linux:host cpio:host kmod:host xz:host wireless-regdb keyutils $KERNEL_EXTRA_DEPENDS_TARGET"
-PKG_DEPENDS_INIT="toolchain"
-PKG_NEED_UNPACK="$LINUX_DEPENDS $(get_pkg_directory busybox)"
+PKG_DEPENDS_HOST="ccache:host rsync:host openssl:host"
+PKG_DEPENDS_TARGET="toolchain linux:host kmod:host xz:host keyutils $KERNEL_EXTRA_DEPENDS_TARGET"
+PKG_NEED_UNPACK="$LINUX_DEPENDS $(get_pkg_directory initramfs) $(get_pkg_variable initramfs PKG_NEED_UNPACK)"
 PKG_LONGDESC="This package contains a precompiled kernel image and the modules."
 PKG_IS_KERNEL_PKG="yes"
 PKG_STAMP="$KERNEL_TARGET $KERNEL_MAKE_EXTRACMD"
@@ -16,21 +15,22 @@ PKG_STAMP="$KERNEL_TARGET $KERNEL_MAKE_EXTRACMD"
 PKG_PATCH_DIRS="$LINUX"
 
 case "$LINUX" in
-  rockchip-4.4)
-    PKG_VERSION="aa8bacf821e5c8ae6dd8cae8d64011c741659945"
-    PKG_SHA256="a2760fe89a15aa7be142fd25fb08ebd357c5d855c41f1612cf47c6e89de39bb3"
-    PKG_URL="https://github.com/rockchip-linux/kernel/archive/$PKG_VERSION.tar.gz"
+  amlogic)
+    PKG_VERSION="98d54f81e36ba3bf92172791eba5ca5bd813989b" # 5.6-rc4
+    PKG_SHA256="93d86760f8c2bc694c3a0ac6ceaa78034fe7d4026221d8480cd9696074d59a46"
+    PKG_URL="https://github.com/torvalds/linux/archive/$PKG_VERSION.tar.gz"
     PKG_SOURCE_NAME="linux-$LINUX-$PKG_VERSION.tar.gz"
+    PKG_PATCH_DIRS="amlogic"
     ;;
   raspberrypi)
-    PKG_VERSION="742cb761fa7f2a25e9fc57afd72deb0c47b0c864" # 4.19.106
-    PKG_SHA256="51ca9832bacceb5405d8e862b1559f6a16a2110b01586362a99855980c2a23e5"
+    PKG_VERSION="67d4589da4940159e2ded20e4bf5fa90b370b4c3" # 5.4.28
+    PKG_SHA256="7ece38b077d609adf0c5e0504469ccfaa4c0309e702d7a637674748d8185cf7f"
     PKG_URL="https://github.com/raspberrypi/linux/archive/$PKG_VERSION.tar.gz"
     PKG_SOURCE_NAME="linux-$LINUX-$PKG_VERSION.tar.gz"
     ;;
   *)
-    PKG_VERSION="5.1.16"
-    PKG_SHA256="8a3e55be3e788700836db6f75875b4d3b824a581d1eacfc2fcd29ed4e727ba3e"
+    PKG_VERSION="5.4.33"
+    PKG_SHA256="b5579621302a6169b389b64dd9ef084df3bb2f11d91dd73273f76e2323223861"
     PKG_URL="https://www.kernel.org/pub/linux/kernel/v5.x/$PKG_NAME-$PKG_VERSION.tar.xz"
     PKG_PATCH_DIRS="default"
     ;;
@@ -50,54 +50,71 @@ if [ "$PKG_BUILD_PERF" != "no" ] && grep -q ^CONFIG_PERF_EVENTS= $PKG_KERNEL_CFG
 fi
 
 if [ "$TARGET_ARCH" = "x86_64" ]; then
-  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET intel-ucode:host kernel-firmware elfutils:host pciutils"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET elfutils:host pciutils"
+  PKG_DEPENDS_UNPACK+=" intel-ucode kernel-firmware"
 fi
 
 if [[ "$KERNEL_TARGET" = uImage* ]]; then
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET u-boot-tools:host"
 fi
 
+# Ensure that the dependencies of initramfs:target are built correctly, but
+# we don't want to add initramfs:target as a direct dependency as we install
+# this "manually" from within linux:target
+for pkg in $(get_pkg_variable initramfs PKG_DEPENDS_TARGET); do
+  ! listcontains "${PKG_DEPENDS_TARGET}" "${pkg}" && PKG_DEPENDS_TARGET+=" ${pkg}" || true
+done
+
 post_patch() {
-  cp $PKG_KERNEL_CFG_FILE $PKG_BUILD/.config
+  # linux was already built and its build dir autoremoved - prepare it again for kernel packages
+  if [ -d $PKG_INSTALL/.image ]; then
+    cp -p $PKG_INSTALL/.image/.config $PKG_BUILD
+    kernel_make -C $PKG_BUILD prepare
 
-  sed -i -e "s|^CONFIG_INITRAMFS_SOURCE=.*$|CONFIG_INITRAMFS_SOURCE=\"$BUILD/image/initramfs.cpio\"|" $PKG_BUILD/.config
-  sed -i -e '/^CONFIG_INITRAMFS_SOURCE=*./ a CONFIG_INITRAMFS_ROOT_UID=0\nCONFIG_INITRAMFS_ROOT_GID=0' $PKG_BUILD/.config
+    # restore the required Module.symvers from an earlier build
+    cp -p $PKG_INSTALL/.image/Module.symvers $PKG_BUILD
+  else
+    cp $PKG_KERNEL_CFG_FILE $PKG_BUILD/.config
 
-  # set default hostname based on $DISTRONAME
-    sed -i -e "s|@DISTRONAME@|$DISTRONAME|g" $PKG_BUILD/.config
+    sed -i -e "s|@INITRAMFS_SOURCE@|$(kernel_initramfs_confs) $BUILD/initramfs|" $PKG_BUILD/.config
 
-  # disable swap support if not enabled
-  if [ ! "$SWAP_SUPPORT" = yes ]; then
-    sed -i -e "s|^CONFIG_SWAP=.*$|# CONFIG_SWAP is not set|" $PKG_BUILD/.config
-  fi
+    # set default hostname based on $DISTRONAME
+      sed -i -e "s|@DISTRONAME@|$DISTRONAME|g" $PKG_BUILD/.config
 
-  # disable nfs support if not enabled
-  if [ ! "$NFS_SUPPORT" = yes ]; then
-    sed -i -e "s|^CONFIG_NFS_FS=.*$|# CONFIG_NFS_FS is not set|" $PKG_BUILD/.config
-  fi
+    # disable swap support if not enabled
+    if [ ! "$SWAP_SUPPORT" = yes ]; then
+      sed -i -e "s|^CONFIG_SWAP=.*$|# CONFIG_SWAP is not set|" $PKG_BUILD/.config
+    fi
 
-  # disable cifs support if not enabled
-  if [ ! "$SAMBA_SUPPORT" = yes ]; then
-    sed -i -e "s|^CONFIG_CIFS=.*$|# CONFIG_CIFS is not set|" $PKG_BUILD/.config
-  fi
+    # disable nfs support if not enabled
+    if [ ! "$NFS_SUPPORT" = yes ]; then
+      sed -i -e "s|^CONFIG_NFS_FS=.*$|# CONFIG_NFS_FS is not set|" $PKG_BUILD/.config
+    fi
 
-  # disable iscsi support if not enabled
-  if [ ! "$ISCSI_SUPPORT" = yes ]; then
-    sed -i -e "s|^CONFIG_SCSI_ISCSI_ATTRS=.*$|# CONFIG_SCSI_ISCSI_ATTRS is not set|" $PKG_BUILD/.config
-    sed -i -e "s|^CONFIG_ISCSI_TCP=.*$|# CONFIG_ISCSI_TCP is not set|" $PKG_BUILD/.config
-    sed -i -e "s|^CONFIG_ISCSI_BOOT_SYSFS=.*$|# CONFIG_ISCSI_BOOT_SYSFS is not set|" $PKG_BUILD/.config
-    sed -i -e "s|^CONFIG_ISCSI_IBFT_FIND=.*$|# CONFIG_ISCSI_IBFT_FIND is not set|" $PKG_BUILD/.config
-    sed -i -e "s|^CONFIG_ISCSI_IBFT=.*$|# CONFIG_ISCSI_IBFT is not set|" $PKG_BUILD/.config
-  fi
+    # disable cifs support if not enabled
+    if [ ! "$SAMBA_SUPPORT" = yes ]; then
+      sed -i -e "s|^CONFIG_CIFS=.*$|# CONFIG_CIFS is not set|" $PKG_BUILD/.config
+    fi
 
-  # install extra dts files
-  for f in $PROJECT_DIR/$PROJECT/config/*-overlay.dts; do
-    [ -f "$f" ] && cp -v $f $PKG_BUILD/arch/$TARGET_KERNEL_ARCH/boot/dts/overlays || true
-  done
-  if [ -n "$DEVICE" ]; then
-    for f in $PROJECT_DIR/$PROJECT/devices/$DEVICE/config/*-overlay.dts; do
-      [ -f "$f" ] && cp -v $f $PKG_BUILD/arch/$TARGET_KERNEL_ARCH/boot/dts/overlays || true
-    done
+    # disable iscsi support if not enabled
+    if [ ! "$ISCSI_SUPPORT" = yes ]; then
+      sed -i -e "s|^CONFIG_SCSI_ISCSI_ATTRS=.*$|# CONFIG_SCSI_ISCSI_ATTRS is not set|" $PKG_BUILD/.config
+      sed -i -e "s|^CONFIG_ISCSI_TCP=.*$|# CONFIG_ISCSI_TCP is not set|" $PKG_BUILD/.config
+      sed -i -e "s|^CONFIG_ISCSI_BOOT_SYSFS=.*$|# CONFIG_ISCSI_BOOT_SYSFS is not set|" $PKG_BUILD/.config
+      sed -i -e "s|^CONFIG_ISCSI_IBFT_FIND=.*$|# CONFIG_ISCSI_IBFT_FIND is not set|" $PKG_BUILD/.config
+      sed -i -e "s|^CONFIG_ISCSI_IBFT=.*$|# CONFIG_ISCSI_IBFT is not set|" $PKG_BUILD/.config
+    fi
+
+    # disable lima/panfrost if libmali is configured
+    if [ "$OPENGLES" = "libmali" ]; then
+      sed -e "s|^CONFIG_DRM_LIMA=.*$|# CONFIG_DRM_LIMA is not set|" -i $PKG_BUILD/.config
+      sed -e "s|^CONFIG_DRM_PANFROST=.*$|# CONFIG_DRM_PANFROST is not set|" -i $PKG_BUILD/.config
+    fi
+
+    # disable wireguard support if not enabled
+    if [ ! "$WIREGUARD_SUPPORT" = yes ]; then
+      sed -e "s|^CONFIG_WIREGUARD=.*$|# CONFIG_WIREGUARD is not set|" -i $PKG_BUILD/.config
+    fi
   fi
 }
 
@@ -127,6 +144,13 @@ makeinstall_host() {
 }
 
 pre_make_target() {
+  ( cd $ROOT
+    rm -rf $BUILD/initramfs
+    rm -f ${STAMPS_INSTALL}/initramfs/install_target ${STAMPS_INSTALL}/*/install_init
+    $SCRIPTS/install initramfs
+  )
+  pkg_lock_status "ACTIVE" "linux:target" "build"
+
   if [ "$TARGET_ARCH" = "x86_64" ]; then
     # copy some extra firmware to linux tree
     mkdir -p $PKG_BUILD/external-firmware
@@ -139,18 +163,20 @@ pre_make_target() {
   fi
 
   kernel_make oldconfig
-
-  # regdb (backward compatability with pre-4.15 kernels)
-  if grep -q ^CONFIG_CFG80211_INTERNAL_REGDB= $PKG_BUILD/.config ; then
-    cp $(get_build_dir wireless-regdb)/db.txt $PKG_BUILD/net/wireless/db.txt
-  fi
 }
 
 make_target() {
-  kernel_make modules
-  kernel_make INSTALL_MOD_PATH=$INSTALL/$(get_kernel_overlay_dir) modules_install
-  rm -f $INSTALL/$(get_kernel_overlay_dir)/lib/modules/*/build
-  rm -f $INSTALL/$(get_kernel_overlay_dir)/lib/modules/*/source
+  # arm64 target does not support creating uImage.
+  # Build Image first, then wrap it using u-boot's mkimage.
+  if [[ "$TARGET_KERNEL_ARCH" = "arm64" && "$KERNEL_TARGET" = uImage* ]]; then
+    if [ -z "$KERNEL_UIMAGE_LOADADDR" -o -z "$KERNEL_UIMAGE_ENTRYADDR" ]; then
+      die "ERROR: KERNEL_UIMAGE_LOADADDR and KERNEL_UIMAGE_ENTRYADDR have to be set to build uImage - aborting"
+    fi
+    KERNEL_UIMAGE_TARGET="$KERNEL_TARGET"
+    KERNEL_TARGET="${KERNEL_TARGET/uImage/Image}"
+  fi
+
+  kernel_make $KERNEL_TARGET $KERNEL_MAKE_EXTRACMD modules
 
   if [ "$PKG_BUILD_PERF" = "yes" ] ; then
     ( cd tools/perf
@@ -185,31 +211,10 @@ make_target() {
     )
   fi
 
-  ( cd $ROOT
-    rm -rf $BUILD/initramfs
-    $SCRIPTS/install initramfs
-  )
-  pkg_lock_status "ACTIVE" "linux:target" "build"
-
-  # arm64 target does not support creating uImage.
-  # Build Image first, then wrap it using u-boot's mkimage.
-  if [[ "$TARGET_KERNEL_ARCH" == "arm64" && "$KERNEL_TARGET" == uImage* ]]; then
-    if [ -z "$KERNEL_UIMAGE_LOADADDR" -o -z "$KERNEL_UIMAGE_ENTRYADDR" ]; then
-      die "ERROR: KERNEL_UIMAGE_LOADADDR and KERNEL_UIMAGE_ENTRYADDR have to be set to build uImage - aborting"
-    fi
-    KERNEL_UIMAGE_TARGET="$KERNEL_TARGET"
-    KERNEL_TARGET="${KERNEL_TARGET/uImage/Image}"
-  fi
-
-  # the modules target is required to get a proper Module.symvers
-  # file with symbols from built-in and external modules.
-  # Without that it'll contain only the symbols from the kernel
-  kernel_make $KERNEL_TARGET $KERNEL_MAKE_EXTRACMD modules
-
   if [ -n "$KERNEL_UIMAGE_TARGET" ] ; then
     # determine compression used for kernel image
     KERNEL_UIMAGE_COMP=${KERNEL_UIMAGE_TARGET:7}
-    KERNEL_UIMAGE_COMP=${KERNEL_UIMAGE_COMP:-none}
+    KERNEL_UIMAGE_COMP=$(echo ${KERNEL_UIMAGE_COMP:-none} | sed 's/gz/gzip/; s/bz2/bzip2/')
 
     # calculate new load address to make kernel Image unpack to memory area after compressed image
     if [ "$KERNEL_UIMAGE_COMP" != "none" ] ; then
@@ -237,6 +242,13 @@ make_target() {
 }
 
 makeinstall_target() {
+  mkdir -p $INSTALL/.image
+  cp -p arch/${TARGET_KERNEL_ARCH}/boot/${KERNEL_TARGET} System.map .config Module.symvers $INSTALL/.image/
+
+  kernel_make INSTALL_MOD_PATH=$INSTALL/$(get_kernel_overlay_dir) modules_install
+  rm -f $INSTALL/$(get_kernel_overlay_dir)/lib/modules/*/build
+  rm -f $INSTALL/$(get_kernel_overlay_dir)/lib/modules/*/source
+
   if [ "$BOOTLOADER" = "u-boot" ]; then
     mkdir -p $INSTALL/usr/share/bootloader
     for dtb in arch/$TARGET_KERNEL_ARCH/boot/dts/*.dtb arch/$TARGET_KERNEL_ARCH/boot/dts/*/*.dtb; do
@@ -258,38 +270,4 @@ makeinstall_target() {
     done
     cp -p arch/$TARGET_KERNEL_ARCH/boot/dts/overlays/README $INSTALL/usr/share/bootloader/overlays
   fi
-}
-
-make_init() {
- : # reuse make_target()
-}
-
-makeinstall_init() {
-  if [ -n "$INITRAMFS_MODULES" ]; then
-    mkdir -p $INSTALL/etc
-    mkdir -p $INSTALL/usr/lib/modules
-
-    for i in $INITRAMFS_MODULES; do
-      module=`find .install_pkg/$(get_full_module_dir)/kernel -name $i.ko`
-      if [ -n "$module" ]; then
-        echo $i >> $INSTALL/etc/modules
-        cp $module $INSTALL/usr/lib/modules/`basename $module`
-      fi
-    done
-  fi
-
-  if [ "$UVESAFB_SUPPORT" = yes ]; then
-    mkdir -p $INSTALL/usr/lib/modules
-      uvesafb=`find .install_pkg/$(get_full_module_dir)/kernel -name uvesafb.ko`
-      cp $uvesafb $INSTALL/usr/lib/modules/`basename $uvesafb`
-  fi
-}
-
-post_install() {
-  mkdir -p $INSTALL/$(get_full_firmware_dir)/
-
-  # regdb and signature is now loaded as firmware by 4.15+
-    if grep -q ^CONFIG_CFG80211_REQUIRE_SIGNED_REGDB= $PKG_BUILD/.config; then
-      cp $(get_build_dir wireless-regdb)/regulatory.db{,.p7s} $INSTALL/$(get_full_firmware_dir)
-    fi
 }
