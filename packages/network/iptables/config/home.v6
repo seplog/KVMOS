@@ -12,6 +12,7 @@
 -A private-subnets -s fc00::/7 -i eth+ -m conntrack --ctstate NEW -j ACCEPT
 -A private-subnets -s fc00::/7 -i en+ -m conntrack --ctstate NEW -j ACCEPT
 -A private-subnets -s fc00::/7 -i docker+ -m conntrack --ctstate NEW -j ACCEPT
+-A private-subnets -s fc00::/7 -i br+ -m conntrack --ctstate NEW -j ACCEPT
 -A private-subnets -j REJECT --reject-with icmp6-port-unreachable
 COMMIT
 *nat
